@@ -4,4 +4,5 @@ plotly
 pandas
 numpy
 scikit-learn
-tensorflow-cpu
+tensorflow==2.10.0
+keras==2.10.0
