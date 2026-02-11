@@ -18,15 +18,15 @@ st.set_page_config(
 # Load the renewable energy data
 @st.cache_data  # Enable caching for improved performance
 def load_data():
-    hydro_data = pd.read_csv('F:\APU\FYP\Dataset\Cleaned_data\hydro_daily_production_dataset.csv')
+    hydro_data = pd.read_csv('.\dateset\hydro_daily_production_dataset.csv')
     hydro_data['Energy Source'] = 'Hydro'
     hydro_data['Date'] = pd.to_datetime(hydro_data['Date'])
 
-    wind_data = pd.read_csv('F:\APU\FYP\Dataset\Cleaned_data\wind_daily_production_dataset.csv')
+    wind_data = pd.read_csv('.\dateset\wind_daily_production_dataset.csv')
     wind_data['Energy Source'] = 'Wind'
     wind_data['Date'] = pd.to_datetime(wind_data['Date'])
 
-    solar_data = pd.read_csv('F:\APU\FYP\Dataset\Cleaned_data\solar_daily_production_dataset.csv')
+    solar_data = pd.read_csv('.\dateset\solar_daily_production_dataset.csv')
     solar_data['Energy Source'] = 'Solar'
     solar_data['Date'] = pd.to_datetime(solar_data['Date'])
 
