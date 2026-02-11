@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import os
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
@@ -188,8 +189,17 @@ def map_chart(data):
 def main():
     st.title('Global Renewable Energy Dashboard')
 
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    model_path = os.path.join(
+        BASE_DIR,
+        "forecast_models",
+        "Hydro",
+        "us_hydro_best_uni_lstm.h5"
+    )
+
     # Load forecast models for each country and renewable source
-    hydro_forecast_models = {'United States': load_model('forecast_models/Hydro/us_hydro_best_uni_lstm.h5'),
+    hydro_forecast_models = {'United States': load_model(model_path),
                              'Canada': load_model(r"./forecast_models/Hydro/can_hydro_best_uni_lstm.h5"),
                              'Germany': load_model(r"./forecast_models/Hydro/ger_hydro_best_uni_lstm.h5"),
                              'Brazil': load_model(r"./forecast_models/Hydro/brz_hydro_best_uni_lstm.h5"),
