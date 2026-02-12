@@ -35,7 +35,7 @@ def load_data():
     solar_data['Energy Source'] = 'Solar'
     solar_data['Date'] = pd.to_datetime(solar_data['Date'])
     solar_data = solar_data[(solar_data['Date'] >= start_date)]
-    
+
     # data = pd.concat([hydro_data, wind_data, solar_data], ignore_index=True)
 
     return hydro_data, wind_data, solar_data
@@ -193,10 +193,8 @@ def map_chart(data):
 
     st.plotly_chart(fig)
 
-# Main function
-def main():
-    st.title('Global Renewable Energy Dashboard')
-
+@st.cache_resource
+def load_all_models():
     # Load forecast models for each country and renewable source
     hydro_forecast_models = {'United States': keras.models.load_model('./forecast_models/Hydro/us_hydro_best_uni_lstm.h5'),
                              'Canada': keras.models.load_model('./forecast_models/Hydro/can_hydro_best_uni_lstm.h5'),
@@ -222,23 +220,36 @@ def main():
                              'Australia': keras.models.load_model('./forecast_models/Solar/aus_solar_best_gru.h5'),
                              }
 
-    # Load data
-    hydro_data, wind_data, solar_data = load_data()
+    return hydro_forecast_models, wind_forecast_models, solar_forecast_models
 
+@st.cache_data
+def get_processed_data(_hydro_models, _wind_models, _solar_models):
+    # Load and process data only when models or source files change
+    hydro_data, wind_data, solar_data = load_data()
+    
     # Creating an evaluation matrix DataFrame
     columns = ['Country', 'Energy Source', 'MAE', 'MSE', 'RMSE']
     eva_matrix_df = pd.DataFrame(columns=columns)
 
     #forecast data
-    hydro_data, eva_matrix_df  = forecast_data(hydro_data, hydro_forecast_models, eva_matrix_df)
-    wind_data, eva_matrix_df = forecast_data(wind_data, wind_forecast_models, eva_matrix_df)
-    solar_data, eva_matrix_df = forecast_data(solar_data, solar_forecast_models, eva_matrix_df)
+    hydro_data, eva_matrix_df  = forecast_data(hydro_data, _hydro_models, eva_matrix_df)
+    wind_data, eva_matrix_df = forecast_data(wind_data, _wind_models, eva_matrix_df)
+    solar_data, eva_matrix_df = forecast_data(solar_data, _solar_models, eva_matrix_df)
+    
+    combined_data = pd.concat([hydro_data, wind_data, solar_data], ignore_index=True)
+    return combined_data, eva_matrix_df
 
-    #concat the final data
-    data = pd.concat([hydro_data, wind_data, solar_data], ignore_index=True)
+
+# Main function
+def main():
+    st.title('Global Renewable Energy Dashboard')
+
+    # These will only run ONCE (the first time the app starts)
+    h_models, w_models, s_models = load_all_models()
+    all_data, full_eva_matrix = get_processed_data(h_models, w_models, s_models)
 
     # Sidebar filters
-    filtered_data, filtered_eva_matrix = sidebar_filters(data, eva_matrix_df)
+    filtered_data, filtered_eva_matrix = sidebar_filters(all_data, full_eva_matrix)
 
     # Line chart
     st.subheader('Renewable Energy Production Over Time & Prediction')
