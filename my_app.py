@@ -1,10 +1,9 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import os
-from tensorflow.keras.models import load_model
+import tf_keras as keras
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -19,15 +18,15 @@ st.set_page_config(
 # Load the renewable energy data
 @st.cache_data  # Enable caching for improved performance
 def load_data():
-    hydro_data = pd.read_csv('.\dateset\hydro_daily_production_dataset.csv')
+    hydro_data = pd.read_csv('.\dataset\hydro_daily_production_dataset.csv')
     hydro_data['Energy Source'] = 'Hydro'
     hydro_data['Date'] = pd.to_datetime(hydro_data['Date'])
 
-    wind_data = pd.read_csv('.\dateset\wind_daily_production_dataset.csv')
+    wind_data = pd.read_csv('.\dataset\wind_daily_production_dataset.csv')
     wind_data['Energy Source'] = 'Wind'
     wind_data['Date'] = pd.to_datetime(wind_data['Date'])
 
-    solar_data = pd.read_csv('.\dateset\solar_daily_production_dataset.csv')
+    solar_data = pd.read_csv('.\dataset\solar_daily_production_dataset.csv')
     solar_data['Energy Source'] = 'Solar'
     solar_data['Date'] = pd.to_datetime(solar_data['Date'])
 
@@ -78,9 +77,12 @@ def forecast_data(data, forecast_models, eva_matrix_df):
         mse = mean_squared_error(forecast_value, test['Value'].values)
         rmse = math.sqrt(mse)
 
-        # Adding a new evaluation matrix
         new_eva_matrix = {'Country': country, 'Energy Source': data['Energy Source'][0], 'MAE': mae, 'MSE': mse, 'RMSE': rmse}
-        eva_matrix_df = eva_matrix_df.append(new_eva_matrix, ignore_index=True)
+        # Convert the dictionary to a DataFrame and use concat
+        new_row_df = pd.DataFrame([new_eva_matrix])
+
+        # Adding a new evaluation matrix
+        eva_matrix_df = pd.concat([eva_matrix_df, new_row_df], ignore_index=True)
 
         forecast = pd.DataFrame(forecast_value, columns=['Forecast Value'], index=pd.date_range(start=split_date, periods=len(forecast_value), freq='D'))
         forecast.reset_index(inplace=True)
@@ -190,28 +192,28 @@ def main():
     st.title('Global Renewable Energy Dashboard')
 
     # Load forecast models for each country and renewable source
-    hydro_forecast_models = {'United States': load_model('./forecast_models/Hydro/us_hydro_best_uni_lstm.h5'),
-                             'Canada': load_model(r"./forecast_models/Hydro/can_hydro_best_uni_lstm.h5"),
-                             'Germany': load_model(r"./forecast_models/Hydro/ger_hydro_best_uni_lstm.h5"),
-                             'Brazil': load_model(r"./forecast_models/Hydro/brz_hydro_best_uni_lstm.h5"),
-                             "People's Republic of China": load_model(r"./forecast_models/Hydro/chn_hydro_best_uni_lstm.h5"),
-                             'Australia': load_model(r"./forecast_models/Hydro/aus_hydro_best_uni_lstm.h5"),
+    hydro_forecast_models = {'United States': keras.models.load_model('./forecast_models/Hydro/us_hydro_best_uni_lstm.h5'),
+                             'Canada': keras.models.load_model('./forecast_models/Hydro/can_hydro_best_uni_lstm.h5'),
+                             'Germany': keras.models.load_model('./forecast_models/Hydro/ger_hydro_best_uni_lstm.h5'),
+                             'Brazil': keras.models.load_model('./forecast_models/Hydro/brz_hydro_best_uni_lstm.h5'),
+                             "People's Republic of China": keras.models.load_model('./forecast_models/Hydro/chn_hydro_best_uni_lstm.h5'),
+                             'Australia': keras.models.load_model('./forecast_models/Hydro/aus_hydro_best_uni_lstm.h5'),
                              }
 
-    wind_forecast_models = {'United States': load_model(r"./forecast_models/Wind/us_wind_best_gru.h5"),
-                            'Canada': load_model(r"./forecast_models/Wind/can_wind_best_gru.h5"),
-                            'Germany': load_model(r"./forecast_models/Wind/ger_wind_best_gru.h5"),
-                            'Brazil': load_model(r"./forecast_models/Wind/brz_wind_best_gru.h5"),
-                            "People's Republic of China": load_model(r"./forecast_models/Wind/chn_wind_best_gru.h5"),
-                            'Australia': load_model(r"./forecast_models/Wind/aus_wind_best_gru.h5"),
+    wind_forecast_models = {'United States': keras.models.load_model('./forecast_models/Wind/us_wind_best_gru.h5'),
+                            'Canada': keras.models.load_model('./forecast_models/Wind/can_wind_best_gru.h5'),
+                            'Germany': keras.models.load_model('./forecast_models/Wind/ger_wind_best_gru.h5'),
+                            'Brazil': keras.models.load_model('./forecast_models/Wind/brz_wind_best_gru.h5'),
+                            "People's Republic of China": keras.models.load_model('./forecast_models/Wind/chn_wind_best_gru.h5'),
+                            'Australia': keras.models.load_model('./forecast_models/Wind/aus_wind_best_gru.h5'),
                             }
 
-    solar_forecast_models = {'United States': load_model(r"./forecast_models/Solar/us_solar_best_gru.h5"),
-                             'Canada': load_model(r"./forecast_models/Solar/can_solar_best_gru.h5"),
-                             'Germany': load_model(r"./forecast_models/Solar/ger_solar_best_gru.h5"),
-                             'Brazil': load_model(r"./forecast_models/Solar/brz_solar_best_gru.h5"),
-                             "People's Republic of China": load_model(r"./forecast_models/Solar/chn_solar_best_gru.h5"),
-                             'Australia': load_model(r"./forecast_models/Solar/aus_solar_best_gru.h5"),
+    solar_forecast_models = {'United States': keras.models.load_model('./forecast_models/Solar/us_solar_best_gru.h5'),
+                             'Canada': keras.models.load_model('./forecast_models/Solar/can_solar_best_gru.h5'),
+                             'Germany': keras.models.load_model('./forecast_models/Solar/ger_solar_best_gru.h5'),
+                             'Brazil': keras.models.load_model('./forecast_models/Solar/brz_solar_best_gru.h5'),
+                             "People's Republic of China": keras.models.load_model('./forecast_models/Solar/chn_solar_best_gru.h5'),
+                             'Australia': keras.models.load_model('./forecast_models/Solar/aus_solar_best_gru.h5'),
                              }
 
     # Load data
